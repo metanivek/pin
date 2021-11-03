@@ -29,29 +29,30 @@ const isPinned = (hash, pinList) => {
 };
 
 const pinHash = async (hash, pinList, name) => {
-  if (!isPinned(hash, pinList)) {
-    console.log("[pinning]", name);
+  const needsPinning = !isPinned(hash, pinList);
+  if (needsPinning) {
     const result = await pinata.pinByHash(hash, {
       pinataMetadata: {
         name,
       },
     });
     console.log(result);
-    return true;
   }
-  return false;
+  console.log(`pinned ${hash}`);
+  return needsPinning;
 };
 
 const pinObjkt = async (objkt, pinList) => {
+  console.log(`\nPinning #${objkt.id}`);
   let called = false;
   called =
-    called &&
+    called ||
     (await pinHash(objkt.metadata_hash, pinList, `metadata ${objkt.id}`));
   called =
-    called &&
+    called ||
     (await pinHash(objkt.artifact_hash, pinList, `artifact ${objkt.id}`));
   called =
-    called &&
+    called ||
     (await pinHash(objkt.display_hash, pinList, `thumbnail ${objkt.id}`));
   return called;
 };

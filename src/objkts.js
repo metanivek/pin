@@ -8,9 +8,37 @@ const fetch = require("cross-fetch");
 
 const addresses = process.env.TEZ_ADDRESSES.split(",");
 
+const fetchCollectedQuery = {
+  query: gql`
+    query FetchCollectedObjkts(
+      $addresses: [String!]
+      $include_tags: [String!]
+    ) {
+      hic_et_nunc_token(
+        where: {
+          creator_id: { _nin: $addresses }
+          token_holders: {
+            quantity: { _gt: 0 }
+            holder_id: { _in: $addresses }
+          }
+        }
+        order_by: { id: desc }
+      ) {
+        id
+        artifact_uri
+        display_uri
+        metadata
+      }
+    }
+  `,
+  variables: {
+    addresses,
+  },
+};
+
 const fetchCreatedQuery = {
   query: gql`
-    query FetchMyObjkts($addresses: [String!], $include_tags: [String!]) {
+    query FetchCreatedObjkts($addresses: [String!], $include_tags: [String!]) {
       hic_et_nunc_token(
         where: {
           creator_id: { _in: $addresses }
@@ -44,7 +72,7 @@ const normalizeObjkt = (objkt) => {
   };
 };
 
-const fetchCreatedObjkts = async () => {
+const fetchObjkts = async (query) => {
   const client = new ApolloClient({
     link: new HttpLink({
       uri: "https://api.hicdex.com/v1/graphql",
@@ -52,10 +80,14 @@ const fetchCreatedObjkts = async () => {
     }),
     cache: new InMemoryCache(),
   });
-  const { data } = await client.query(fetchCreatedQuery);
+  const { data } = await client.query(query);
   return data["hic_et_nunc_token"].map((o) => normalizeObjkt(o));
 };
 
+const fetchCreatedObjkts = async () => fetchObjkts(fetchCreatedQuery);
+const fetchCollectedObjkts = async () => fetchObjkts(fetchCollectedQuery);
+
 module.exports = {
   fetchCreatedObjkts,
+  fetchCollectedObjkts,
 };
