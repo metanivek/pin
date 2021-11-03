@@ -6,17 +6,21 @@ const timeout =
     : 10000;
 
 const pinHash = async (hash) => {
+  let success = true;
   try {
     const { stdout, stderr } = await exec(`ipfs pin add ${hash}`, { timeout });
 
     if (stderr) {
+      success = false;
       console.error(`error pinning ${hash}`, stderr);
     } else {
       console.log(stdout.replace(/[\n\r]/g, ""));
     }
   } catch (err) {
+    success = false;
     console.error(`error pinning ${hash}`, err);
   }
+  return success;
 };
 
 const pinObjkt = async (objkt) => {
@@ -37,7 +41,9 @@ const pinObjkts = async (objkts) => {
     }
   }
   if (failed.length > 0) {
-    console.log(`${failed.length} OBJKTs failed to pin!`);
+    console.log(
+      `\n\n${failed.length} of ${objkts.length} OBJKTs failed to pin!`
+    );
     for (const i of failed) {
       console.log(`https://hicetnunc.xyz/objkt/${i}`);
     }
