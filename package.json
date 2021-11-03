@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "pinata": "node index.js"
+    "pinata": "node index.js pinata",
+    "local": "node index.js local"
   },
   "dependencies": {
     "@apollo/client": "^3.4.16",
