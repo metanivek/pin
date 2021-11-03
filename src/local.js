@@ -1,6 +1,9 @@
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
-const timeout = process.env.LOCAL_TIMEOUT || 10000;
+const timeout =
+  process.env.LOCAL_TIMEOUT !== undefined
+    ? parseInt(process.env.LOCAL_TIMEOUT)
+    : 10000;
 
 const pinHash = async (hash) => {
   try {
@@ -33,7 +36,12 @@ const pinObjkts = async (objkts) => {
       failed.push(objkt.id);
     }
   }
-  if (failed.length > 0) console.log("The OBJKTs failed to pin.", failed);
+  if (failed.length > 0) {
+    console.log(`${failed.length} OBJKTs failed to pin!`);
+    for (const i of failed) {
+      console.log(`https://hicetnunc.xyz/objkt/${i}`);
+    }
+  }
 };
 
 module.exports = {
