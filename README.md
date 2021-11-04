@@ -1,4 +1,4 @@
-# henpin
+# pin
 
 A simple node script for pinning hic et nunc OBJKTs to Pinata or a local IPFS
 node. You can pin your created or collected OBJKTs.
