@@ -45,7 +45,7 @@ const pinObjkts = async (objkts) => {
       `\n\n${failed.length} of ${objkts.length} OBJKTs failed to pin!`
     );
     for (const i of failed) {
-      console.log(`https://hicetnunc.xyz/objkt/${i}`);
+      console.log(`https://objkt.com/asset/hicetnunc/${i}`);
     }
   }
 };
