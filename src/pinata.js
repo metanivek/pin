@@ -37,8 +37,9 @@ const pinHash = async (hash, pinList, name) => {
       },
     });
     console.log(result);
+  } else {
+    console.log(`already pinned ${hash}`);
   }
-  console.log(`pinned ${hash}`);
   return needsPinning;
 };
 
