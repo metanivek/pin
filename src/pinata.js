@@ -45,17 +45,11 @@ const pinHash = async (hash, pinList, name) => {
 
 const pinObjkt = async (objkt, pinList) => {
   console.log(`\nPinning #${objkt.id}`);
-  let called = false;
-  called =
-    called ||
-    (await pinHash(objkt.metadata_hash, pinList, `metadata ${objkt.id}`));
-  called =
-    called ||
-    (await pinHash(objkt.artifact_hash, pinList, `artifact ${objkt.id}`));
-  called =
-    called ||
-    (await pinHash(objkt.display_hash, pinList, `thumbnail ${objkt.id}`));
-  return called;
+  const m = await pinHash(objkt.metadata_hash, pinList, `metadata ${objkt.id}`);
+  const a = await pinHash(objkt.artifact_hash, pinList, `artifact ${objkt.id}`);
+  const t = await pinHash(objkt.display_hash, pinList, `thumbnail ${objkt.id}`);
+
+  return m || a || t;
 };
 
 const pinObjkts = async (objkts) => {
