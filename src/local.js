@@ -1,5 +1,6 @@
 const util = require("util");
 const fs = require("fs");
+const ProgressBar = require("progress");
 const exec = util.promisify(require("child_process").exec);
 const timeout =
   process.env.LOCAL_TIMEOUT !== undefined
@@ -21,57 +22,61 @@ const saveCachedPins = (pins) => {
   fs.writeFileSync(pinCacheFile, JSON.stringify(pins));
 };
 
-const pinHash = async (hash) => {
-  let success = true;
+const hashUrl = (hash) => `https://ipfs.io/ipfs/${hash}`;
+
+const pinHash = async (hash, bar, failures) => {
   try {
     const { stdout, stderr } = await exec(`ipfs pin add ${hash}`, { timeout });
-
     if (stderr) {
-      success = false;
-      console.error(`error pinning ${hash}`, stderr);
-    } else {
-      console.log(stdout.replace(/[\n\r]/g, ""));
+      failures.push(hash);
     }
   } catch (err) {
-    success = false;
-    console.error(`error pinning ${hash}`, err);
+    failures.push(hash);
   }
-  return success;
+  return failures;
 };
 
-const pinObjkt = async (objkt) => {
-  console.log(`\nPinning #${objkt.id}`);
-  let success = true;
-  success = (await pinHash(objkt.metadata_hash)) && success;
-  success = (await pinHash(objkt.artifact_hash)) && success;
-  success = (await pinHash(objkt.display_hash)) && success;
-  return success;
+const pinToken = async (token, bar) => {
+  let failures = [];
+  await pinHash(token.metadata_hash, bar, failures);
+  await pinHash(token.artifact_hash, bar, failures);
+  await pinHash(token.display_hash, bar, failures);
+  return failures;
 };
 
-const pinObjkts = async (objkts) => {
+const pin = async (tokens) => {
   const failed = [];
   const cache = loadCachedPins();
-  console.log(`${cache.length} already pinned!`);
-  objkts = objkts.filter((o) => !cache.includes(o.id));
-  for (const objkt of objkts) {
-    const success = await pinObjkt(objkt);
-    if (!success) {
-      failed.push(objkt.id);
+  tokens = tokens.filter((o) => !cache.includes(o.id));
+  const bar = new ProgressBar("Pinning [:bar] :percent  ", {
+    total: tokens.length + 1,
+    complete: "=",
+    incomplete: " ",
+  });
+  for (const token of tokens) {
+    bar.tick();
+    const failures = await pinToken(token, bar);
+    if (failures.length > 0) {
+      failed.push(failures);
     } else {
-      cache.push(objkt.id);
+      cache.push(token.id);
     }
   }
+  bar.tick();
   if (failed.length > 0) {
     console.log(
-      `\n\n${failed.length} of ${objkts.length} OBJKTs failed to pin!`
+      `\n\n${failed.length} of ${tokens.length} tokens failed to pin!`
     );
-    for (const i of failed) {
-      console.log(`https://objkt.com/asset/hicetnunc/${i}`);
+    console.log(
+      "Visiting the following URLs may help when you try to pin again."
+    );
+    for (const hash of failed.flat()) {
+      console.log(hashUrl(hash));
     }
   }
   saveCachedPins(cache);
 };
 
 module.exports = {
-  pinObjkts,
+  pin,
 };

@@ -1,5 +1,6 @@
 const pinataSDK = require("@pinata/sdk");
 const { delay } = require("./utils");
+const ProgressBar = require("progress");
 
 const pinata = pinataSDK(
   process.env.PINATA_API_KEY,
@@ -36,26 +37,44 @@ const pinHash = async (hash, pinList, name) => {
         name,
       },
     });
-    console.log(result);
+    // console.log(result);
   } else {
-    console.log(`already pinned ${hash}`);
+    // console.log(`already pinned ${hash}`);
   }
   return needsPinning;
 };
 
-const pinObjkt = async (objkt, pinList) => {
-  console.log(`\nPinning #${objkt.id}`);
-  const m = await pinHash(objkt.metadata_hash, pinList, `metadata ${objkt.id}`);
-  const a = await pinHash(objkt.artifact_hash, pinList, `artifact ${objkt.id}`);
-  const t = await pinHash(objkt.display_hash, pinList, `thumbnail ${objkt.id}`);
+const pinToken = async (token, pinList) => {
+  // console.log(`\nPinning #${token.id}`);
+  const m = await pinHash(
+    token.metadata_hash,
+    pinList,
+    `metadata ${token.contract} ${token.id}`
+  );
+  const a = await pinHash(
+    token.artifact_hash,
+    pinList,
+    `artifact ${token.contract} ${token.id}`
+  );
+  const t = await pinHash(
+    token.display_hash,
+    pinList,
+    `thumbnail ${token.contract} ${token.id}`
+  );
 
   return m || a || t;
 };
 
-const pinObjkts = async (objkts) => {
+const pin = async (tokens) => {
   const pinList = await fetchPinList();
-  for (const objkt of objkts) {
-    const called = await pinObjkt(objkt, pinList);
+  const bar = new ProgressBar("Pinning [:bar] :percent :etas   ", {
+    total: tokens.length,
+    complete: "=",
+    incomplete: " ",
+  });
+  for (const token of tokens) {
+    const called = await pinToken(token, pinList);
+    bar.tick();
     if (called) {
       await delay(60000 / 180); // simple rate limiting
     }
@@ -63,5 +82,5 @@ const pinObjkts = async (objkts) => {
 };
 
 module.exports = {
-  pinObjkts,
+  pin,
 };

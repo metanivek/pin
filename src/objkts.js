@@ -1,3 +1,6 @@
+// DEPRECATED: this code is not used now but is left
+// for historical reference
+
 const {
   ApolloClient,
   HttpLink,
