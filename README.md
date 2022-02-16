@@ -15,4 +15,4 @@ node. You can pin your created or collected OBJKTs.
 1. `cp .env.sample .env`
 1. Replace values in `.env` with your Pinata keys and your Tezos addresses
 1. `npm i` to install dependencies
-1. Run one of the pinning commands: `npm run pinata-created`, `npm run pinata-collected`, `npm run local-created`, or `npm run local-collected`
+1. Run one of the pinning commands: `npm run pinata created`, `npm run pinata collected`, `npm run local created`, or `npm run local collected`
