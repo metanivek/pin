@@ -8,9 +8,8 @@ const limit = 1000;
 const bigMapPtrs = {};
 
 // tzkt's api doesn't include metadata info in their tokens api
-// so we have to find it in a big map. this looks in two big maps:
-// token_metadata and assets.token_metadata
-const fetchBigMapId = async (ktAddr, name = "token_metadata") => {
+// so we have to find the token_metadata big map to find token metadata.
+const fetchBigMapId = async (ktAddr) => {
   if (bigMapPtrs[ktAddr]) {
     return bigMapPtrs[ktAddr];
   }
@@ -18,7 +17,7 @@ const fetchBigMapId = async (ktAddr, name = "token_metadata") => {
   const baseUrl = "https://api.tzkt.io/v1/bigmaps";
   const params = {
     contract: ktAddr,
-    "path.eq": name,
+    "path.as": "*token_metadata",
     "select.fields": "ptr",
   };
   const { data } = await axios.get(
@@ -27,14 +26,8 @@ const fetchBigMapId = async (ktAddr, name = "token_metadata") => {
 
   const ptr = data[0];
 
-  // some NFTs put their metadata under assets :shrug:
-  const fallback = "assets.token_metadata";
-  if (ptr || name === fallback) {
-    bigMapPtrs[ktAddr] = ptr;
-    return ptr;
-  } else {
-    return fetchBigMapId(ktAddr, fallback);
-  }
+  bigMapPtrs[ktAddr] = ptr;
+  return ptr;
 };
 
 const fetchMetadataHash = async (ktAddr, tokenId) => {
@@ -54,6 +47,7 @@ const fetchMetadataHash = async (ktAddr, tokenId) => {
       ipfsUri + String.fromCharCode(parseInt(bytes.substring(i, i + 2), 16));
   }
   if (ipfsUri.startsWith("ipfs") === false) {
+    // TODO: should handle this better, probably
     console.log(`Non-IPFS metadata ${ipfsUri}`);
     return null;
   }
