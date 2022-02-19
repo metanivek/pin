@@ -1,5 +1,4 @@
-const axios = require("axios");
-const querystring = require("querystring");
+const http = require("./http");
 const { ipfsHashFromUri } = require("./ipfs");
 const ProgressBar = require("progress");
 
@@ -20,12 +19,9 @@ const fetchBigMapId = async (ktAddr) => {
     "path.as": "*token_metadata",
     "select.fields": "ptr",
   };
-  const { data } = await axios.get(
-    baseUrl + "?" + querystring.stringify(params)
-  );
+  const data = await http.get(baseUrl, params);
 
   const ptr = data[0];
-
   bigMapPtrs[ktAddr] = ptr;
   return ptr;
 };
@@ -37,9 +33,8 @@ const fetchMetadataHash = async (ktAddr, tokenId) => {
     "key.eq": `${tokenId}`,
     select: "value",
   };
-  const { data } = await axios.get(
-    baseUrl + "?" + querystring.stringify(params)
-  );
+  const data = await http.get(baseUrl, params);
+
   const bytes = data[0].token_info[""];
   let ipfsUri = "";
   for (let i = 0; i < bytes.length; i += 2) {
@@ -57,11 +52,9 @@ const fetchMetadataHash = async (ktAddr, tokenId) => {
 const fetchBalances = async (params = {}, offset = 0, balances = []) => {
   const baseUrl = "https://api.tzkt.io/v1/tokens/balances";
   params = { ...params, offset: offset, limit };
-  const { data } = await axios.get(
-    baseUrl + "?" + querystring.stringify(params)
-  );
-  balances = balances.concat(data);
+  const data = await http.get(baseUrl, params);
 
+  balances = balances.concat(data);
   if (data.length > 0 && data.length <= limit) {
     const newOffset = offset + data.length;
     return fetchBalances(params, newOffset, balances);
