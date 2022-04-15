@@ -88,7 +88,9 @@ const fetchTokens = async (params) => {
     }
 
     const { metadata } = token;
-    if (metadata.artifactUri || metadata.artifact_uri) {
+    if (metadata === undefined) {
+      console.log("Undefined metadata", b);
+    } else if (metadata.artifactUri || metadata.artifact_uri) {
       try {
         const contract = token.contract.address;
         const metadataUri = await fetchMetadataHash(contract, id);
